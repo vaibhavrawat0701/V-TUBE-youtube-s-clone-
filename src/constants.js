@@ -1,1 +1,1 @@
-export const DB_NAME = "V TUBE";
+export const DB_NAME = "V-TUBE";
