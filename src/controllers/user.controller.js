@@ -159,6 +159,7 @@ const loginUser = asyncHandler(async (req, res) => {
 });
 
 //LOGOUT USER
+//for logout we created a middleware called auth.middleware.js which will verify the user and then we will logout the user by clearing the cookies and removing the refresh token from the database
 
 const logoutUser = asyncHandler(async (req, res) => {
   await User.findByIdAndUpdate(
