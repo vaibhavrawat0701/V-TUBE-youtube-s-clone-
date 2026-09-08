@@ -248,6 +248,12 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
   if (!isPasswordCorrect) {
     throw new ApiError(400, "Old password is incorrect");
   }
+  user.password = newPassword;
+  await user.save({ validationBeforeSave: false });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "Password changed successfully"));
 });
 
 export { registerUser, loginUser, logoutUser, refreshAccessToken };
