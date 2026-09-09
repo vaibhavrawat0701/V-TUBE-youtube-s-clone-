@@ -267,7 +267,7 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
     throw new ApiError(400, "At least one field is required to update");
   }
 
-  UserfindByIdAndUpdate(
+  const updateUser = User.findByIdAndUpdate(
     req.user._id,
     {
       $set: {
@@ -285,6 +285,25 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
     );
 });
 
+const updateUserAvatar = asyncHandler(async (req, res) => {
+  const avatarLocalPath = req.file?.path;
+
+  if (!avatarLocalPath) {
+    throw new ApiError(400, "Avatar file is missing");
+  }
+
+  const avatar = await uploadCloudinary(avatarLocalPath);
+  if (!avatar.url) {
+    throw new ApiError(400, "Error while uploading on avatar");
+  }
+
+  await User.findByIdAndUpdate(req.user?._id, {
+    $set: {
+      avatar: avatar.url,
+    },
+  });
+});
+
 export {
   registerUser,
   loginUser,
@@ -293,4 +312,5 @@ export {
   getCurrentUser,
   changeCurrentPassword,
   updateAccountDetails,
+  updateUserAvatar,
 };
