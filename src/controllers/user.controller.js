@@ -297,13 +297,31 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Error while uploading on avatar");
   }
 
-  await User.findByIdAndUpdate(req.user?._id, {
+  const user = await User.findByIdAndUpdate(req.user?._id, {
     $set: {
       avatar: avatar.url,
     },
   });
 });
 
+const updateUserCoverImage = asyncHandler(async (req, res) => {
+  const coverImageLocalPath = req.file?.path;
+
+  if (!coverImageLocalPath) {
+    throw new ApiError(400, "Cover Image file is missing");
+  }
+
+  const coverImage = await uploadCloudinary(avatarLocalPath);
+  if (!coverImage.url) {
+    throw new ApiError(400, "Error while uploading the image");
+  }
+
+  await User.findByIdAndUpdate(req.user?._id, {
+    $set: {
+      avatar: avatar.url,
+    },
+  });
+});
 export {
   registerUser,
   loginUser,
