@@ -148,7 +148,7 @@ const loginUser = asyncHandler(async (req, res) => {
   //6
   const options = {
     httpOnly: true,
-    secure: true,
+    secure: false,
   };
   return res
     .status(200)
@@ -178,7 +178,7 @@ const logoutUser = asyncHandler(async (req, res) => {
   );
   const options = {
     httpOnly: true,
-    secure: true,
+    secure: false,
   };
   return res
     .status(200)
@@ -418,7 +418,7 @@ const getWatchHistory = asyncHandler(async (req, res) => {
           {
             $lookup: {
               from: "users",
-              localfield: "owner",
+              localField: "owner",
               foreignField: "_id",
               as: "owner",
               pipeline: [
