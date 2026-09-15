@@ -13,7 +13,7 @@ const getVideoComments = asyncHandler(async (req, res) => {
   if (!mongoose.isValidObjectId(videoId)) {
     throw new ApiError(400, "Invalid video ID");
   }
-  const comments = await Comment.find({
+  const comment = await Comment.find({
     video: videoId,
   })
     .populate("owner", "username fullName avatar")
@@ -36,4 +36,29 @@ const getVideoComments = asyncHandler(async (req, res) => {
       "Comments fetched successfully"
     )
   );
+});
+
+// adding comments
+
+const addComment = asyncHandler(async (req, res) => {
+  const { videoID } = req.params;
+  const { content } = req.body;
+
+  if (!mongoose.isValidObjectId(videoId)) {
+    throw new ApiError(400, "Comment content is required");
+  }
+
+  if (!content || !content.trim()) {
+    throw new ApiError(400, "comment content is required");
+  }
+
+  const comment = await Comment.create({
+    content: content.trim(),
+    video: videoId,
+    owner: req.user._id,
+  });
+
+  return res
+    .status(201)
+    .json(new ApiResponse(201, comment, "comment added successfully"));
 });
