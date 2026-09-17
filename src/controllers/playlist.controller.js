@@ -65,3 +65,70 @@ const getPlaylistById = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, playlist, "Playlist fetched successfully"));
 });
+
+// add video to playlist
+
+const addVideoToPlaylist = asyncHandler(async (req, res) => {
+  const { playlistId, videoId } = req.params;
+
+  if (!isValidObjectId(playlistId) || !isValidObjectId(videoId)) {
+    throw new ApiError(400, "Invalid playlist or video id");
+  }
+
+  const playlist = await Playlist.findById(playlistId);
+
+  if (!playlist) {
+    throw new ApiError(404, "Playlist not found");
+  }
+
+  // Only playlist owner can modify playlist
+  if (playlist.owner.toString() !== req.user._id.toString()) {
+    throw new ApiError(403, "You cannot modify this playlist");
+  }
+
+  // Check if video is already inside playlist
+  if (playlist.videos.includes(videoId)) {
+    throw new ApiError(400, "Video already exists in playlist");
+  }
+
+  playlist.videos.push(videoId);
+
+  await playlist.save();
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, playlist, "Video added to playlist successfully")
+    );
+});
+
+//remove video from playlist
+
+const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
+  const { playlistId, videoId } = req.params;
+
+  if (!isValidObjectId(playlistId) || !isValidObjectId(videoId)) {
+    throw new ApiError(400, "Invalid playlist or video id");
+  }
+
+  const playlist = await Playlist.findById(playlistId);
+
+  if (!playlist) {
+    throw new ApiError(404, "Playlist not found");
+  }
+
+  // Only owner can modify playlist
+  if (playlist.owner.toString() !== req.user._id.toString()) {
+    throw new ApiError(403, "You cannot modify this playlist");
+  }
+
+  playlist.videos.pull(videoId);
+
+  await playlist.save();
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, playlist, "Video removed from playlist successfully")
+    );
+});
