@@ -132,3 +132,76 @@ const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
       new ApiResponse(200, playlist, "Video removed from playlist successfully")
     );
 });
+
+// Delete playlist
+
+const deletePlaylist = asyncHandler(async (req, res) => {
+  const { playlistId } = req.params;
+
+  if (!isValidObjectId(playlistId)) {
+    throw new ApiError(400, "Invalid playlist id");
+  }
+
+  const playlist = await Playlist.findById(playlistId);
+
+  if (!playlist) {
+    throw new ApiError(404, "Playlist not found");
+  }
+
+  // Only owner can delete playlist
+  if (playlist.owner.toString() !== req.user._id.toString()) {
+    throw new ApiError(403, "You cannot delete this playlist");
+  }
+
+  await Playlist.findByIdAndDelete(playlistId);
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "Playlist deleted successfully"));
+});
+
+// Update playlist
+
+const updatePlaylist = asyncHandler(async (req, res) => {
+  const { playlistId } = req.params;
+  const { name, description } = req.body;
+
+  if (!isValidObjectId(playlistId)) {
+    throw new ApiError(400, "Invalid playlist id");
+  }
+
+  const playlist = await Playlist.findById(playlistId);
+
+  if (!playlist) {
+    throw new ApiError(404, "Playlist not found");
+  }
+
+  // Only owner can update playlist
+  if (playlist.owner.toString() !== req.user._id.toString()) {
+    throw new ApiError(403, "You cannot update this playlist");
+  }
+
+  if (name) {
+    playlist.name = name;
+  }
+
+  if (description) {
+    playlist.description = description;
+  }
+
+  await playlist.save();
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, playlist, "Playlist updated successfully"));
+});
+
+export {
+  createPlaylist,
+  getUserPlaylists,
+  getPlaylistById,
+  addVideoToPlaylist,
+  removeVideoFromPlaylist,
+  deletePlaylist,
+  updatePlaylist,
+};
