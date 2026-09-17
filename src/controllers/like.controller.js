@@ -41,3 +41,94 @@ const toggleVideoLike = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, { liked: true }, "Video liked successfully"));
 });
+
+//  COMMENT LIKE
+
+const toggleCommentLike = asyncHandler(async (req, res) => {
+  const { commentId } = req.params;
+
+  if (!isValidObjectId(commentId)) {
+    throw new ApiError(400, "Invalid comment id");
+  }
+
+  const existingLike = await Like.findOne({
+    comment: commentId,
+    likedBy: req.user._id,
+  });
+
+  if (existingLike) {
+    await Like.findByIdAndDelete(existingLike._id);
+
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(200, { liked: false }, "Comment unliked successfully")
+      );
+  }
+
+  await Like.create({
+    comment: commentId,
+    likedBy: req.user._id,
+  });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, { liked: true }, "Comment liked successfully"));
+});
+
+// TWEET LIKE
+
+const toggleTweetLike = asyncHandler(async (req, res) => {
+  const { tweetId } = req.params;
+
+  if (!isValidObjectId(tweetId)) {
+    throw new ApiError(400, "Invalid tweet id");
+  }
+
+  const existingLike = await Like.findOne({
+    tweet: tweetId,
+    likedBy: req.user._id,
+  });
+
+  if (existingLike) {
+    await Like.findByIdAndDelete(existingLike._id);
+
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(200, { liked: false }, "Tweet unliked successfully")
+      );
+  }
+
+  await Like.create({
+    tweet: tweetId,
+    likedBy: req.user._id,
+  });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, { liked: true }, "Tweet liked successfully"));
+});
+
+const getLikedVideos = asyncHandler(async (req, res) => {
+  const likedVideos = await Like.find({
+    likedBy: req.user._id,
+    video: { $exists: true },
+  })
+    .populate({
+      path: "video",
+      populate: {
+        path: "owner",
+        select: "username fullName avatar",
+      },
+    })
+    .sort({ createdAt: -1 });
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, likedVideos, "Liked videos fetched successfully")
+    );
+});
+
+export { toggleCommentLike, toggleTweetLike, toggleVideoLike, getLikedVideos };
