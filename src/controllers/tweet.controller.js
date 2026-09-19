@@ -90,3 +90,32 @@ const updateTweet = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, tweet, "Tweet updated successfully"));
 });
+//delete tweet
+const deleteTweet = asyncHandler(async (req, res) => {
+  const { tweetId } = req.params;
+
+  if (!isValidObjectId(tweetId)) {
+    throw new ApiError(400, "Invalid tweet id");
+  }
+
+  // Find tweet
+  const tweet = await Tweet.findById(tweetId);
+
+  if (!tweet) {
+    throw new ApiError(404, "Tweet not found");
+  }
+
+  // Only owner can delete their tweet
+  if (tweet.owner.toString() !== req.user._id.toString()) {
+    throw new ApiError(403, "You are not allowed to delete this tweet");
+  }
+
+  // Delete tweet
+  await Tweet.findByIdAndDelete(tweetId);
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "Tweet deleted successfully"));
+});
+
+export { createTweet, getUserTweets, updateTweet, deleteTweet };
