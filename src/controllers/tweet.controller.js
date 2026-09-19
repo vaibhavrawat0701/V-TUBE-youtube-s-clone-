@@ -54,3 +54,39 @@ const getUserTweets = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, tweets, "User tweets fetched successfully"));
 });
+
+//update tweet
+const updateTweet = asyncHandler(async (req, res) => {
+  const { tweetId } = req.params;
+
+  const { content } = req.body;
+
+  if (!isValidObjectId(tweetId)) {
+    throw new ApiError(400, "Invalid tweet id");
+  }
+
+  if (!content || !content.trim()) {
+    throw new ApiError(400, "Tweet content is required");
+  }
+
+  // Find tweet
+  const tweet = await Tweet.findById(tweetId);
+
+  if (!tweet) {
+    throw new ApiError(404, "Tweet not found");
+  }
+
+  // Only the owner can update their tweet
+  if (tweet.owner.toString() !== req.user._id.toString()) {
+    throw new ApiError(403, "You are not allowed to update this tweet");
+  }
+
+  // Update tweet
+  tweet.content = content.trim();
+
+  await tweet.save();
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, tweet, "Tweet updated successfully"));
+});
