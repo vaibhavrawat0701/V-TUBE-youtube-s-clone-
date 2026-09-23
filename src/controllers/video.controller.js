@@ -110,3 +110,74 @@ const saveVideoAsDraft = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, video, "Video saved as draft successfully"));
 });
+
+// SCHEDULE VIDEO
+const scheduleVideo = asyncHandler(async (req, res) => {
+  const { videoId } = req.params;
+  const { publishAt } = req.body;
+
+  if (!isValidObjectId(videoId)) {
+    throw new ApiError(400, "Invalid video ID");
+  }
+
+  if (!publishAt) {
+    throw new ApiError(400, "Publish date is required");
+  }
+
+  const publishDate = new Date(publishAt);
+
+  if (Number.isNaN(publishDate.getTime())) {
+    throw new ApiError(400, "Invalid publish date");
+  }
+
+  if (publishDate <= new Date()) {
+    throw new ApiError(400, "Publish date must be in the future");
+  }
+
+  const video = await Video.findById(videoId);
+
+  if (!video) {
+    throw new ApiError(404, "Video not found");
+  }
+
+  if (video.owner.toString() !== req.user._id.toString()) {
+    throw new ApiError(403, "You are not allowed to schedule this video");
+  }
+
+  video.status = "scheduled";
+  video.publishAt = publishDate;
+
+  await video.save();
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, video, "Video scheduled successfully"));
+});
+
+// PUBLISH VIDEO NOW
+const publishVideo = asyncHandler(async (req, res) => {
+  const { videoId } = req.params;
+
+  if (!isValidObjectId(videoId)) {
+    throw new ApiError(400, "Invalid video ID");
+  }
+
+  const video = await Video.findById(videoId);
+
+  if (!video) {
+    throw new ApiError(404, "Video not found");
+  }
+
+  if (video.owner.toString() !== req.user._id.toString()) {
+    throw new ApiError(403, "You are not allowed to publish this video");
+  }
+
+  video.status = "published";
+  video.publishAt = null;
+
+  await video.save();
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, video, "Video published successfully"));
+});
