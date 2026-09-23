@@ -181,3 +181,5 @@ const publishVideo = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, video, "Video published successfully"));
 });
+
+export { getAllVideos, saveVideoAsDraft, scheduleVideo, publishVideo };
