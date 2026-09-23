@@ -23,7 +23,7 @@ const getAllVideos = asyncHandler(async (req, res) => {
 
   // Object used for filtering videos
   const filter = {
-    isPublished: true,
+    status: "published",
   };
 
   // Search by title or description
@@ -81,4 +81,32 @@ const getAllVideos = asyncHandler(async (req, res) => {
       "Videos fetched successfully"
     )
   );
+});
+
+// SAVE VIDEO AS DRAFT
+const saveVideoAsDraft = asyncHandler(async (req, res) => {
+  const { videoId } = req.params;
+
+  if (!isValidObjectId(videoId)) {
+    throw new ApiError(400, "Invalid video ID");
+  }
+
+  const video = await Video.findById(videoId);
+
+  if (!video) {
+    throw new ApiError(404, "Video not found");
+  }
+
+  if (video.owner.toString() !== req.user._id.toString()) {
+    throw new ApiError(403, "You are not allowed to modify this video");
+  }
+
+  video.status = "draft";
+  video.publishAt = null;
+
+  await video.save();
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, video, "Video saved as draft successfully"));
 });
