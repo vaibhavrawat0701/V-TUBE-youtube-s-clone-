@@ -182,4 +182,33 @@ const publishVideo = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, video, "Video published successfully"));
 });
 
-export { getAllVideos, saveVideoAsDraft, scheduleVideo, publishVideo };
+const getMyVideos = asyncHandler(async (req, res) => {
+  const { status } = req.query;
+
+  const filter = {
+    owner: req.user._id,
+  };
+
+  if (status) {
+    const allowedStatuses = ["draft", "scheduled", "published"];
+
+    if (!allowedStatuses.includes(status)) {
+      throw new ApiError(400, "Invalid video status");
+    }
+
+    filter.status = status;
+  }
+
+  const videos = await Video.find(filter).sort({ createdAt: -1 });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, videos, "Your videos fetched successfully"));
+});
+export {
+  getAllVideos,
+  saveVideoAsDraft,
+  scheduleVideo,
+  publishVideo,
+  getMyVideos,
+};
